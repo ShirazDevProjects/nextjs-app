@@ -1,0 +1,24 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nextjs-app
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+    labels:
+      - "traefik.enable=true"
+      # Specify network so Traefik knows which interface to route to
+      - "traefik.docker.network=${TRAEFIK_NETWORK:-traefik-net}"
+      # HTTPS Router
+      - "traefik.http.routers.nextjs-app.rule=Host(`${DOMAIN:-example.com}`)"
+      - "traefik.http.routers.nextjs-app.entrypoints=websecure"
+      - "traefik.http.routers.nextjs-app.tls=true"
+      - "traefik.http.routers.nextjs-app.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-letsencrypt}"
+      # Target Port
+      - "traefik.http.services.nextjs-app.loadbalancer.server.port=3000"
